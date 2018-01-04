@@ -6,4 +6,7 @@
  :duct.module/sql {}
 
  :duct.module/ataraxy
- {}}
+ {[:get "/"] [:index]}
+
+ [:duct.handler.static/ok :duct-blog.handler/index]
+ {:body {:posts "/posts"}}}
