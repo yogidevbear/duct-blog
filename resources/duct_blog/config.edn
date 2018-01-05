@@ -6,7 +6,42 @@
  :duct.module/sql {}
 
  :duct.module/ataraxy
- {[:get "/"] [:index]}
+ {[:get "/"] [:index]
+  [:get "/categories"] [:categories/list]
+  [:get "/authors"] [:authors/list]}
+  ;[:get "/posts"] [:posts/list]}
 
  [:duct.handler.static/ok :duct-blog.handler/index]
- {:body {:posts "/posts"}}}
+ {:body [{:posts "/posts"} {:categories "/categories"} {:authors "/authors"}]}
+
+ [:duct.handler.sql/query :duct-blog.handler.categories/list]
+ {:sql ["SELECT * FROM categories"]}
+
+ [:duct.handler.sql/query :duct-blog.handler.authors/list]
+ {:sql ["SELECT * FROM authors"]}
+
+ ;[:duct.handler.sql/query :duct-blog.handler.posts/list]
+ ;{:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
+
+ ;;Database migrations
+ ;authors
+ :duct.migrator/ragtime
+ {:migrations [#ig/ref :duct-blog.migration/create-authors
+               #ig/ref :duct-blog.migration/create-categories
+               #ig/ref :duct-blog.migration/create-posts
+               #ig/ref :duct-blog.migration/create-category-post-groups]}
+ [:duct.migrator.ragtime/sql :duct-blog.migration/create-authors]
+ {:up ["CREATE TABLE authors (authorId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, firstName TEXT NOT NULL, lastName TEXT NOT NULL)"]
+  :down ["DROP TABLE authors"]}
+ ;categories
+ [:duct.migrator.ragtime/sql :duct-blog.migration/create-categories]
+ {:up ["CREATE TABLE categories (categoryId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, categoryName TEXT NOT NULL, categoryDescription TEXT)"]
+  :down ["DROP TABLE categories"]}
+ ;posts
+ [:duct.migrator.ragtime/sql :duct-blog.migration/create-posts]
+ {:up ["CREATE TABLE posts (postId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, title TEXT NOT NULL, content TEXT NOT NULL, authorId INTEGER NOT NULL, createdAt TEXT, FOREIGN KEY (authorId) REFERENCES authors(authorId))"]
+  :down ["DROP TABLE posts"]}
+ ;posts<->categories
+ [:duct.migrator.ragtime/sql :duct-blog.migration/create-category-post-groups]
+ {:up ["CREATE TABLE categoryPostGroups (categoryId INTEGER NOT NULL, postId INTEGER NOT NULL, PRIMARY KEY (categoryId,postId), FOREIGN KEY (categoryId) REFERENCES categories(categoryId), FOREIGN KEY (postId) REFERENCES posts(postId))"]
+  :down ["DROP TABLE categoryPostGroups"]}}
