@@ -8,8 +8,10 @@
  :duct.module/ataraxy
  {[:get "/"] [:index]
   [:get "/categories"] [:categories/list]
-  [:get "/authors"] [:authors/list]}
-  ;[:get "/posts"] [:posts/list]}
+  [:post "/categories" {{:keys [categoryName categoryDescription]} :body-params}]
+  [:categories/create categoryName categoryDescription]
+  [:get "/authors"] [:authors/list]
+  [:get "/posts"] [:posts/list]}
 
  [:duct.handler.static/ok :duct-blog.handler/index]
  {:body [{:posts "/posts"} {:categories "/categories"} {:authors "/authors"}]}
@@ -17,11 +19,15 @@
  [:duct.handler.sql/query :duct-blog.handler.categories/list]
  {:sql ["SELECT * FROM categories"]}
 
+ [:duct.handler.sql/insert :duct-blog.handler.categories/create]
+ {:request {[_ categoryName categoryDescription] :ataraxy/result}
+  :sql     ["INSERT INTO categories (categoryName, categoryDescription) VALUES (?,?)" categoryName categoryDescription]}
+
  [:duct.handler.sql/query :duct-blog.handler.authors/list]
  {:sql ["SELECT * FROM authors"]}
 
- ;[:duct.handler.sql/query :duct-blog.handler.posts/list]
- ;{:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
+ [:duct.handler.sql/query :duct-blog.handler.posts/list]
+ {:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
 
  ;;Database migrations
  ;authors
