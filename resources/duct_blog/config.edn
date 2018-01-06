@@ -11,6 +11,8 @@
   [:post "/categories" {{:keys [categoryName categoryDescription]} :body-params}]
   [:categories/create categoryName categoryDescription]
   [:get "/authors"] [:authors/list]
+  [:post "/authors" {{:keys [firstName lastName]} :body-params}]
+  [:authors/create firstName lastName]
   [:get "/posts"] [:posts/list]}
 
  [:duct.handler.static/ok :duct-blog.handler/index]
@@ -25,6 +27,10 @@
 
  [:duct.handler.sql/query :duct-blog.handler.authors/list]
  {:sql ["SELECT * FROM authors"]}
+
+ [:duct.handler.sql/insert :duct-blog.handler.authors/create]
+ {:request {[_ firstName lastName] :ataraxy/result}
+  :sql     ["INSERT INTO authors (firstName, lastName) VALUES (?,?)" firstName lastName]}
 
  [:duct.handler.sql/query :duct-blog.handler.posts/list]
  {:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
