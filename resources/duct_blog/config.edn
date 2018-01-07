@@ -17,6 +17,8 @@
   [:get "/authors"] [:authors/list]
   [:post "/authors" {{:keys [firstName lastName]} :body-params}]
   [:authors/create firstName lastName]
+  [:get    "/authors/" authorid] [:authors/find ^int authorid]
+  [:delete "/authors/" authorid] [:authors/destroy ^int authorid]
 
   [:get "/posts"] [:posts/list]}
 
@@ -47,10 +49,20 @@
 
  [:duct.handler.sql/insert :duct-blog.handler.authors/create]
  {:request {[_ firstName lastName] :ataraxy/result}
-  :sql     ["INSERT INTO authors (firstName, lastName) VALUES (?,?)" firstName lastName]}
+  :sql     ["INSERT INTO authors (firstName, lastName) VALUES (?,?)" firstName lastName]
+  :location "/authors/{last_insert_rowid}"}
 
  [:duct.handler.sql/query :duct-blog.handler.posts/list]
  {:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
+
+ [:duct.handler.sql/query-one :duct-blog.handler.authors/find]
+ {:request {[_ authorid] :ataraxy/result}
+  :sql     ["SELECT * FROM authors WHERE authorid = ?" authorid]
+  :hrefs   {:href "/authors/{authorid}"}}
+
+ [:duct.handler.sql/execute :duct-blog.handler.authors/destroy]
+ {:request {[_ authorid] :ataraxy/result}
+  :sql     ["DELETE FROM authors WHERE authorid = ?" authorid]}
 
  ;;Database migrations
  ;authors
