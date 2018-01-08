@@ -15,8 +15,8 @@
   [:delete "/categories/" categoryid] [:categories/destroy ^int categoryid]
 
   [:get "/authors"] [:authors/list]
-  [:post "/authors" {{:keys [firstName lastName]} :body-params}]
-  [:authors/create firstName lastName]
+  [:post "/authors" {{:keys [email password firstName lastName]} :body-params}]
+  [:authors/create email password firstName lastName]
   [:get    "/authors/" authorid] [:authors/find ^int authorid]
   [:delete "/authors/" authorid] [:authors/destroy ^int authorid]
 
@@ -47,10 +47,8 @@
  {:sql ["SELECT * FROM authors"]
   :hrefs {:href "/authors/{authorid}"}}
 
- [:duct.handler.sql/insert :duct-blog.handler.authors/create]
- {:request {[_ firstName lastName] :ataraxy/result}
-  :sql     ["INSERT INTO authors (firstName, lastName) VALUES (?,?)" firstName lastName]
-  :location "/authors/{last_insert_rowid}"}
+ [:duct-blog.handler.authors/create]
+ {:db #ig/ref :duct.database/sql}
 
  [:duct.handler.sql/query :duct-blog.handler.posts/list]
  {:sql ["SELECT * FROM posts p INNER JOIN authors a ON p.authorId = a.authorId"]}
@@ -65,14 +63,14 @@
   :sql     ["DELETE FROM authors WHERE authorid = ?" authorid]}
 
  ;;Database migrations
- ;authors
  :duct.migrator/ragtime
  {:migrations [#ig/ref :duct-blog.migration/create-authors
                #ig/ref :duct-blog.migration/create-categories
                #ig/ref :duct-blog.migration/create-posts
                #ig/ref :duct-blog.migration/create-category-post-groups]}
+ ;authors
  [:duct.migrator.ragtime/sql :duct-blog.migration/create-authors]
- {:up ["CREATE TABLE authors (authorId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, firstName TEXT NOT NULL, lastName TEXT NOT NULL)"]
+ {:up ["CREATE TABLE authors (authorId INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, email TEXT UNIQUE, password TEXT NOT NULL, firstName TEXT NOT NULL, lastName TEXT NOT NULL)"]
   :down ["DROP TABLE authors"]}
  ;categories
  [:duct.migrator.ragtime/sql :duct-blog.migration/create-categories]
