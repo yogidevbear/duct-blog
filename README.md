@@ -1,6 +1,8 @@
 # duct-blog
 
-FIXME: description
+A test repository to play around with James Reeves' Duct framework (https://github.com/duct-framework/).
+
+The code in this repo is an adaptation of his guide doc (see https://github.com/duct-framework/docs/blob/master/GUIDE.rst)
 
 ## Developing
 
